@@ -1,5 +1,5 @@
 {
-  "name": "klebk/json-to-popo",
+  "name": "inquid/json-to-popo",
   "description": "Fill Plain Old PHP Object with JSON content. Fork of abgeo/json-to-popo.",
   "type": "library",
   "keywords": [
