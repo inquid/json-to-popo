@@ -54,7 +54,7 @@ class Composer
      *
      * @return object New filled with JSON content object of $class class.
      */
-    public function composeObject(string $json, string $class): object
+    public function composeObject(string $json, string $class): mixed
     {
         $jsonDecoded = json_decode($json);
 
@@ -133,23 +133,13 @@ class Composer
         try {
             $reflectionProperty = new ReflectionProperty($class, $property);
         } catch (ReflectionException $e) {
-            if (
-                "Property {$class}::\${$property} does not exist" === $e->getMessage()
-                && 'true' === ($this->ignoredProperties[$class]['options']['ignoreUnknown'] ?? null)
-            ) {
-                return;
-            } else {
-                throw new RuntimeException($e->getMessage());
-            }
+            return;
         }
 
-        if (!$propertyType = AnnotationParser::getType($reflectionProperty->getDocComment())) {
-            throw new RuntimeException(
-                "Type of Property '{$class}::\${$property}' is undefined!"
-            );
-        }
+        if ($propertyType = AnnotationParser::getType($reflectionProperty->getDocComment())) {
 
-        $this->fillObject($property, $propertyType, $value, $object);
+            $this->fillObject($property, $propertyType, $value, $object);
+        }
     }
 
     /**
@@ -163,20 +153,7 @@ class Composer
      */
     private function fillObject(string $property, string $propertyType, $value, $object): void
     {
-        $setter = 'set' . ucfirst($property);
-        if (!method_exists($object, $setter)) {
-            throw new RuntimeException(
-                'Property \'' . get_class($object) . '::$' . $property . '\' does not have a setter!'
-            );
-        }
-
-        if (is_object($value)) {
-            $value = $this->getDataForObject($propertyType, $value);
-        } elseif (is_array($value)) {
-            $value = $this->getDataForArray($propertyType, $value);
-        }
-
-        call_user_func_array([$object, $setter], [$value]);
+        $object->{$property} = $value;
     }
 
     /**
